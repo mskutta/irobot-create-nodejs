@@ -50,6 +50,14 @@ io.sockets.on('connection', function(socket){
             case 'right':
                 serialPort.write(new Buffer([137,0x00,0xC8,0xFF,0xFF]));
                 break;
+            case 'home':
+                // Cover and Dock
+                serialPort.write(new Buffer([136,1]));
+                break;
+            case 'play':
+                // Start Safe Mode
+                serialPort.write(new Buffer([128,131]));
+                break;
         }
     });
 });
@@ -57,12 +65,9 @@ io.sockets.on('connection', function(socket){
 function serialPortOpen() {
     console.log('port open. Data rate: ' + serialPort.options.baudRate);
 
-    // Start Safe Mode
-    serialPort.write(new Buffer([128,131]));
-
     // Request data packet stream
     //serialPort.write(new Buffer([0x94,0x10,0x07,0x08,0x09,0x0A,0x0B,0x0C,0x0E,0x13,0x14,0x15,0x16,0x17,0x18,0x19,0x1A,0x23]));
-    serialPort.write(new Buffer([148,2,29,13]));
+    serialPort.write(new Buffer([128,148,2,29,13]));
 }
 
 function serialPortData(data) {

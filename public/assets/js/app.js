@@ -1,58 +1,59 @@
-jQuery(function($) {
+var app = angular.module('app', []);
+
+app.factory('socket', function($rootScope){
     var socket = io.connect();
-    var $events = $('#events');
-    var $forward = $('#forward');
-    var $reverse = $('#reverse');
-    var $left = $('#left');
-    var $right = $('#right');
-    var $stop = $('#stop');
+    return {
+        on: function (eventName, callback) {
+            socket.on(eventName, function () {
+                var args = arguments;
+                $rootScope.$apply(function () {
+                    callback.apply(socket, args);
+                });
+            });
+        },
+        emit: function (eventName, data, callback) {
+            socket.emit(eventName, data, function () {
+                var args = arguments;
+                $rootScope.$apply(function () {
+                    if (callback) {
+                        callback.apply(socket, args);
+                    }
+                });
+            })
+        }
+    };
+});
 
-    $forward.mousedown(function(e){
-        e.preventDefault();
-        socket.emit('command', 'forward');
-    });
+app.controller('controller', function($scope, socket) {
 
-    $forward.mouseup(function(e){
-        e.preventDefault();
-        socket.emit('command', 'stop');
-    });
-
-    $reverse.mousedown(function(e){
-        e.preventDefault();
-        socket.emit('command', 'reverse');
-    });
-
-    $reverse.mouseup(function(e){
-        e.preventDefault();
-        socket.emit('command', 'stop');
-    });
-
-    $left.mousedown(function(e){
-        e.preventDefault();
-        socket.emit('command', 'left');
-    });
-
-    $left.mouseup(function(e){
-        e.preventDefault();
-        socket.emit('command', 'stop');
-    });
-
-    $right.mousedown(function(e){
-        e.preventDefault();
-        socket.emit('command', 'right');
-    });
-
-    $right.mouseup(function(e){
-        e.preventDefault();
-        socket.emit('command', 'stop');
-    });
-
-    $stop.mousedown(function(e){
-        e.preventDefault();
-        socket.emit('command', 'stop');
-    });
+    $scope.events = [];
 
     socket.on('event', function(data){
-        $events.append(data + "<br/>");
+        $scope.events.unshift({data: data});
+        if ($scope.events.length > 100) {
+            $scope.events.pop();
+        }
     });
+
+    $scope.forward = function(){
+        socket.emit('command', 'forward');
+    }
+    $scope.left = function(){
+        socket.emit('command', 'left');
+    }
+    $scope.stop = function(){
+        socket.emit('command', 'stop');
+    }
+    $scope.right = function(){
+        socket.emit('command', 'right');
+    }
+    $scope.reverse = function(){
+        socket.emit('command', 'reverse');
+    }
+    $scope.home = function(){
+        socket.emit('command', 'home');
+    }
+    $scope.play = function(){
+        socket.emit('command', 'play');
+    }
 });
